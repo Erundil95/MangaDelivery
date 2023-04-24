@@ -1,17 +1,22 @@
 import requests
 import re
 import os
+import io
 from bs4 import BeautifulSoup
 from io import BytesIO
 from PIL import Image
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+from reportlab.lib.utils import ImageReader
 
 # Constants
 BASE_URL = "https://onepiecechapters.com"
 MANGALIST_URL = "https://onepiecechapters.com/projects"
 TITLES_TO_DOWNLOAD = ["Jujutsu Kaisen"]
-SAVE_FOLDER = r"D:\Documents\MangaDelivery"
+SAVE_FOLDER = r"MangaDeliveryTest"
+
+buffer = io.BytesIO()
 
 def replace_special_numbers(string):
     pattern = r'[①-⑳]'  # match any circled number from 1 to 20
@@ -73,15 +78,16 @@ for manga_div in manga_divs:
                     print("Downloading " + f"{chapter_dir}")
                     chapter_response = requests.get(BASE_URL + chapter_link)
                     chapter_response.raise_for_status()
+                    pdf = canvas.Canvas(buffer, pagesize=letter)
 
                     chapter_soup = BeautifulSoup(chapter_response.content, "html.parser")
 
                     image_links = chapter_soup.find_all("img", {"class": "fixed-ratio-content"})
 
                     # Gather all the images that make up the chapter
-                    for image_link in enumerate(image_links):
+                    for i, image_link in enumerate(image_links):
                         image_url = image_link['src']
-                        # image_name = f"{i + 1}" + ".jpg"
+                        image_name = f"{i + 1}" + ".jpg"
                         image_response = requests.get(image_url)
                         
                         # Save the images in the local folder
@@ -93,13 +99,23 @@ for manga_div in manga_divs:
                             img = img.convert('RGB')
 
                             # Save the image to a local file as JPEG
-                            img.save(os.path.join(chapter_dir, image_name), 'JPEG')
+                            pdf.drawImage(ImageReader(img), 0, 0, width=letter[0], height=letter[1], preserveAspectRatio=True)
+                            
+                            if i < len(image_links) - 1:
+                                pdf.showPage()
+                            
                             print('Image saved successfully!')
                         else:
                             print('Failed to download image')
+                    
+                    pdf.save()
+                    buffer.seek(0)
 
-                if(i>1):
-                    break
+                    with open(os.path.join(chapter_dir, f"{chapter_title}" + ".pdf"), 'wb') as f:
+                        f.write(buffer.read())
+
+              #  if(i>1):   #for testing purposes limit to only 1 chapter to dl 
+               #     break
                 
 
 
