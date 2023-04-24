@@ -50,20 +50,19 @@ for manga_div in manga_divs:
 
         if(title == manga):                                                 
             #TODO: look to make the search more smart for japanese names variants
+            print(manga + " found, downloading...")
             manga_title_dir = os.path.join(SAVE_FOLDER, manga)
             chapter_list_url = BASE_URL + manga_div.find("a")["href"]
             chapter_list_response = requests.get(chapter_list_url)
             chapter_list_response.raise_for_status()
-            
             chapter_list_soup = BeautifulSoup(chapter_list_response.content, "html.parser")
 
             # Save all chapter blocks with Link, Chapter number and Chapter title
             for link in chapter_list_soup.find_all("a", href=re.compile(r"/chapters/\d+/.+")):
-                i = 0
                 # Get the chapter number by splitting the link with / and then -
                 chapter_number = link['href'].split('/')[-1].split('-')[-1]
                 chapter_link = link['href']
-                chapter_title = link.get_text().replace("Jujutsu Kaisen ", "").replace('\n', ' ').replace('\r', ' ').strip()
+                chapter_title = link.get_text().replace("Jujutsu Kaisen ", "").replace('\n', ' ').replace('\r', ' ').replace(',', '').replace(':', '').strip()
                 chapter_title = replace_special_numbers(chapter_title)
 
                 # Create Chapter directory if not exists
@@ -71,7 +70,7 @@ for manga_div in manga_divs:
                 if not os.path.exists(chapter_dir):
                      os.makedirs(chapter_dir)
 
-                # Skip chapter if the folder isn't empty       #TODO: Manage case when a chapter is half written, count the img in the chpater vs img in the folder
+                # Skip chapter if the folder isn't empty       # TODO: Manage case when a chapter is half written, count the img in the chpater vs img in the folder
                 if os.listdir(chapter_dir):
                     print(f"{chapter_dir}" + "already exists and is not empty, skipping... ")     
                 else:
@@ -89,7 +88,7 @@ for manga_div in manga_divs:
                         image_url = image_link['src']
                         image_name = f"{i + 1}" + ".jpg"
                         image_response = requests.get(image_url)
-                        
+
                         # Save the images in the local folder
                         if image_response.status_code == 200:
                             # Open the image using Pillow
@@ -100,22 +99,18 @@ for manga_div in manga_divs:
 
                             # Save the image to a local file as JPEG
                             pdf.drawImage(ImageReader(img), 0, 0, width=letter[0], height=letter[1], preserveAspectRatio=True)
-                            
+
                             if i < len(image_links) - 1:
                                 pdf.showPage()
-                            
-                            print('Image saved successfully!')
+
                         else:
                             print('Failed to download image')
-                    
+
                     pdf.save()
                     buffer.seek(0)
 
                     with open(os.path.join(chapter_dir, f"{chapter_title}" + ".pdf"), 'wb') as f:
                         f.write(buffer.read())
-
-              #  if(i>1):   #for testing purposes limit to only 1 chapter to dl 
-               #     break
                 
 
 
