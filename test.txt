@@ -1,0 +1,31 @@
+for link in chapter_list_soup.find_all("a", href=re.compile(r"/chapters/\d+/.+")):
+    chapter_num = link['href'].split('/')[2]
+    chapter_title = link.get_text()
+    chapter_link = link['href']
+    chapter_dir = os.path.join(manga_title_dir, f"{chapter_num} - {chapter_title}")
+
+    # Check if chapter directory exists
+    if not os.path.exists(chapter_dir):
+        os.makedirs(chapter_dir)
+
+    # Check if chapter directory is empty
+    if os.listdir(chapter_dir):
+        print(f"{chapter_dir} already exists and is not empty, skipping...")
+    else:
+        print(f"Downloading {chapter_title}...")
+        chapter_response = requests.get(BASE_URL + chapter_link)    
+        chapter_response.raise_for_status()
+
+        chapter_soup = BeautifulSoup(chapter_response.content, "html.parser")
+        image_links = chapter_soup.find_all("img", {"class": "img-fluid"})
+
+        for i, image_link in enumerate(image_links):
+            image_url = image_link['src']
+            image_name = f"{i+1}.jpg"
+            image_path = os.path.join(chapter_dir, image_name)
+            image_response = requests.get(image_url)
+
+            with open(image_path, "wb") as f:
+                f.write(image_response.content)
+
+        print(f"{chapter_title} downloaded successfully!")
