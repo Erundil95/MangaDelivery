@@ -3,6 +3,7 @@ import re
 import os
 import io
 import zipfile
+import sys
 from bs4 import BeautifulSoup
 from io import BytesIO
 from PIL import Image
@@ -60,9 +61,6 @@ for manga_div in manga_divs:
 
             # Save all chapter blocks with Link, Chapter number and Chapter title
             for link in chapter_list_soup.find_all("a", href=re.compile(r"/chapters/\d+/.+")):
-                i = 0;
-                if(i >0):
-                    break
                 # Get the chapter number by splitting the link with / and then -
                 chapter_number = link['href'].split('/')[-1].split('-')[-1]
                 chapter_link = link['href']
@@ -114,10 +112,10 @@ for manga_div in manga_divs:
                     
                     zip_file_name = f"{chapter_title}.cbz"
                     zip_buffer.seek(0)          #TODO: ask chatgptwhat this shit does
-
-                    i = i+1
-                    
+                   
                     with open(os.path.join(chapter_dir, zip_file_name), "wb") as zip_file:
                         zip_file.write(zip_buffer.read())
+
+                    sys.exit()
 
 

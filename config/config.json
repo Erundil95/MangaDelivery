@@ -1,0 +1,11 @@
+{
+    "output_dir": "/path/to/data",
+    "base_url": "/path/to/output",
+    "titles_to_download": [
+        "Jujutsu Kaisen"
+    ],
+    "pdf_save": false,
+    "verbose": true,
+    "debug": false,
+    "data_dir_flag": "--data-dir"
+  }
