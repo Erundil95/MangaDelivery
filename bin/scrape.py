@@ -2,6 +2,7 @@ import requests
 import re
 import os
 import io
+import zipfile
 from bs4 import BeautifulSoup
 from io import BytesIO
 from PIL import Image
@@ -59,12 +60,15 @@ for manga_div in manga_divs:
 
             # Save all chapter blocks with Link, Chapter number and Chapter title
             for link in chapter_list_soup.find_all("a", href=re.compile(r"/chapters/\d+/.+")):
+                i = 0;
+                if(i >0):
+                    break
                 # Get the chapter number by splitting the link with / and then -
                 chapter_number = link['href'].split('/')[-1].split('-')[-1]
                 chapter_link = link['href']
                 chapter_title = link.get_text().replace("Jujutsu Kaisen ", "").replace('\n', ' ').replace('\r', ' ').replace(',', '').replace(':', '').strip()
                 chapter_title = replace_special_numbers(chapter_title)
-
+                
                 # Create Chapter directory if not exists
                 chapter_dir = os.path.join(manga_title_dir, f"{chapter_title}")           
                 if not os.path.exists(chapter_dir):
@@ -84,33 +88,36 @@ for manga_div in manga_divs:
                     image_links = chapter_soup.find_all("img", {"class": "fixed-ratio-content"})
 
                     # Gather all the images that make up the chapter
-                    for i, image_link in enumerate(image_links):
-                        image_url = image_link['src']
-                        image_name = f"{i + 1}" + ".jpg"
-                        image_response = requests.get(image_url)
+                    zip_buffer = BytesIO()                      #TODO: ask chatgpt how this shit works
+                    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                        for i, image_link in enumerate(image_links):
+                            image_url = image_link['src']
+                            # image_name = f"{i + 1}" + ".jpg"
+                            image_response = requests.get(image_url)
 
-                        # Save the images in the local folder
-                        if image_response.status_code == 200:
-                            # Open the image using Pillow
-                            img = Image.open(BytesIO(image_response.content))
+                            # Save the images in the local folder
+                            if image_response.status_code == 200:
+                                # Open the image using Pillow
+                                with Image.open(BytesIO(image_response.content)) as img:
+                                    # Convert the image to the RGB mode
+                                    img = img.convert('RGB')
+                                    
+                                    img_byte_arr = io.BytesIO()
+                                    img.save(img_byte_arr, format='JPEG')
 
-                            # Convert the image to the RGB mode
-                            img = img.convert('RGB')
+                                    img_bytes = img_byte_arr.getvalue()
 
-                            # Save the image to a local file as JPEG
-                            pdf.drawImage(ImageReader(img), 0, 0, width=letter[0], height=letter[1], preserveAspectRatio=True)
+                                    file_name = f"page{i + 1}.jpg"
+                                    zip_file.writestr(file_name, img_bytes)
+                            else:
+                                print('Failed to download image')
+                    
+                    zip_file_name = f"{chapter_title}.cbz"
+                    zip_buffer.seek(0)          #TODO: ask chatgptwhat this shit does
 
-                            if i < len(image_links) - 1:
-                                pdf.showPage()
-
-                        else:
-                            print('Failed to download image')
-
-                    pdf.save()
-                    buffer.seek(0)
-
-                    with open(os.path.join(chapter_dir, f"{chapter_title}" + ".pdf"), 'wb') as f:
-                        f.write(buffer.read())
-                
+                    i = i+1
+                    
+                    with open(os.path.join(chapter_dir, zip_file_name), "wb") as zip_file:
+                        zip_file.write(zip_buffer.read())
 
 
