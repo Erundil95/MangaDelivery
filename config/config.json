@@ -1,11 +1,9 @@
 {
-    "output_dir": "/path/to/data",
-    "base_url": "/path/to/output",
+    "output_dir": "MangaDeliveryTest",
+    "base_url": "https://onepiecechapters.com",
+    "mangalist_url": "https://onepiecechapters.com/projects",
     "titles_to_download": [
         "Jujutsu Kaisen"
     ],
-    "pdf_save": false,
-    "verbose": true,
-    "debug": false,
-    "data_dir_flag": "--data-dir"
+    "pdf_save": false
   }
