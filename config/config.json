@@ -5,5 +5,5 @@
     "titles_to_download": [
         "Jujutsu Kaisen"
     ],
-    "pdf_save": false
+    "save_format": "cbz"
   }
