@@ -1,5 +1,5 @@
 {
-    "output_dir": "MangaDeliveryTest",
+    "save_folder": "MangaDeliveryTest",
     "base_url": "https://onepiecechapters.com",
     "mangalist_url": "https://onepiecechapters.com/projects",
     "titles_to_download": [
