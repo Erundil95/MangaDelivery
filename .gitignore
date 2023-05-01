@@ -1,0 +1,9 @@
+# Directories
+build/build
+dist/
+env/
+MangaDeliveryTest/
+
+# Files
+*.spec
+bin/test.html

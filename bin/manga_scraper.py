@@ -16,11 +16,12 @@ class MangaScraper:
         self.TITLES_TO_DOWNLOAD = config['titles_to_download']
         self.SAVE_FOLDER = config['save_folder']
         self.SAVE_FORMAT = config['save_format']
+        self.ASC_CHAPTER_ORDER = config['asc_chapter_order']
 
         # print("BASE_URL:", self.BASE_URL)
         # print("MANGALIST_URL:", self.MANGALIST_URL)
         # print("TITLES_TO_DOWNLOAD:", self.TITLES_TO_DOWNLOAD)
-        # print("SAVE_FOLDER:", self.SAVE_FOLDER)
+        print("Downloading into path: ", self.SAVE_FOLDER)
         # print("SAVE_FORMAT:", self.SAVE_FORMAT)
 
     def replace_special_numbers(self, string):
@@ -61,7 +62,7 @@ class MangaScraper:
                     print(manga + " found, downloading...")
                     self.download_chapters(manga_div, manga)
 
-    def get_chapter_info(self, manga_div):
+    def get_chapters_info(self, manga_div):
     # Get the list of div for each chapter (includes: chapter_title, chapter_number, chapter_link)  
         chapter_list_url = self.BASE_URL + manga_div.find("a")["href"]
         chapter_list_response = requests.get(chapter_list_url)
@@ -89,7 +90,11 @@ class MangaScraper:
         return chapter_dir
 
     def download_chapters(self, manga_div, manga):
-            chapter_list = self.get_chapter_info(manga_div)
+            chapter_list = self.get_chapters_info(manga_div)
+
+            if(self.ASC_CHAPTER_ORDER):
+                # Reverse the list if we want to start from oldest chapter first
+                chapter_list.reverse()
 
             # Switch dictionary with savefile methods
             switch_dict = {
@@ -99,14 +104,14 @@ class MangaScraper:
 
             # Save all chapter blocks with Link, Chapter number and Chapter title
             for chapter_link, chapter_title, chapter_number in chapter_list:
-                chapter_dir = self.create_chapter_directory(manga, chapter_title.replace(manga, ''))
+                chapter_dir = self.create_chapter_directory(manga, chapter_title.replace(manga + ' ', ''))
 
                 # Skip chapter if the folder isn't empty       # TODO: Manage case when a chapter is half written, count the img in the chpater vs img in the folder
                 if os.listdir(chapter_dir):
-                    print(f"{chapter_dir}" + "already exists and is not empty, skipping... ")  
+                    print(chapter_dir.split("\\")[3] + " already exists and is not empty, skipping... ")  
 
                 else:
-                    print("Downloading " + f"{chapter_dir}")
+                    print("Downloading " + f"{chapter_title}")
 
                     chapter_response = requests.get(self.BASE_URL + chapter_link)
                     chapter_response.raise_for_status()
