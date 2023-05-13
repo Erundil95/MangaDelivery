@@ -1,0 +1,7 @@
+{
+  "save_folder": "MangaDeliveryTest",
+  "base_url": "https://onepiecechapters.com",
+  "mangalist_url": "https://onepiecechapters.com/projects",
+  "titles_to_download": ["Jujutsu Kaisen"],
+  "save_format": "cbz"
+}
