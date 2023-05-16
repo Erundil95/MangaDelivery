@@ -9,8 +9,10 @@ from PIL import Image
 
 import sys
 
-class MangaScraper:
+class OnePieceChaptersScraper(BaseScraper):
+    
     def __init__(self, config):
+        super().__init__(config)
         self.BASE_URL = config['base_url']
         self.MANGALIST_URL = config['mangalist_url']
         self.TITLES_TO_DOWNLOAD = config['titles_to_download']
@@ -22,14 +24,6 @@ class MangaScraper:
         # print("TITLES_TO_DOWNLOAD:", self.TITLES_TO_DOWNLOAD)
         # print("SAVE_FOLDER:", self.SAVE_FOLDER)
         # print("SAVE_FORMAT:", self.SAVE_FORMAT)
-
-    def replace_special_numbers(self, string):
-        pattern = r'[①-⑳]'  # match any circled number from 1 to 20
-        char_map = {'①': '1', '②': '2', '③': '3', '④': '4', '⑤': '5',
-                    '⑥': '6', '⑦': '7', '⑧': '8', '⑨': '9', '⑩': '10',
-                    '⑪': '11', '⑫': '12', '⑬': '13', '⑭': '14', '⑮': '15',
-                    '⑯': '16', '⑰': '17', '⑱': '18', '⑲': '19', '⑳': '20'}
-        return re.sub(pattern, lambda match: char_map[match.group()], string)
 
     def create_save_folder(self):
     # If main directory doens't exist then create it
