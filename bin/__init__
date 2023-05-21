@@ -1,4 +1,4 @@
-import config_loader
-import main
-import manga_scraper
-import scrape
+from . import config_loader
+from . import main
+from . import manga_scraper
+from . import core

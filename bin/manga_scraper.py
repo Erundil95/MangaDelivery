@@ -6,7 +6,7 @@ import zipfile
 from bs4 import BeautifulSoup
 from io import BytesIO
 from PIL import Image
-
+from . import utils
 import sys
 
 class MangaScraper:
@@ -23,20 +23,7 @@ class MangaScraper:
         # print("SAVE_FOLDER:", self.SAVE_FOLDER)
         # print("SAVE_FORMAT:", self.SAVE_FORMAT)
 
-    def replace_special_numbers(self, string):
-        pattern = r'[①-⑳]'  # match any circled number from 1 to 20
-        char_map = {'①': '1', '②': '2', '③': '3', '④': '4', '⑤': '5',
-                    '⑥': '6', '⑦': '7', '⑧': '8', '⑨': '9', '⑩': '10',
-                    '⑪': '11', '⑫': '12', '⑬': '13', '⑭': '14', '⑮': '15',
-                    '⑯': '16', '⑰': '17', '⑱': '18', '⑲': '19', '⑳': '20'}
-        return re.sub(pattern, lambda match: char_map[match.group()], string)
-
-    def create_save_folder(self):
-    # If main directory doens't exist then create it
-        if not os.path.exists(self.SAVE_FOLDER):                   # TODO: add a folder icon for the luls
-            os.mkdir(self.SAVE_FOLDER, 0o777)
-
-    def get_manga_divs(self):
+    def get_manga_list(self):
         # Send a GET request to the manga website main page
         response = requests.get(self.MANGALIST_URL)
         response.raise_for_status()
@@ -46,12 +33,12 @@ class MangaScraper:
         soup = BeautifulSoup(html_content, "html.parser")
 
         # Find all mangas available
-        manga_divs = soup.find_all("div", {"class": "flex flex-col"})
-        return manga_divs
+        manga_list = soup.find_all("div", {"class": "flex flex-col"})
+        return manga_list
 
-    def download_manga(self, manga_divs):
+    def download_mangas(self, manga_list):
     # Loop over each manga on the website to match the desired ones
-        for manga_div in manga_divs:
+        for manga_div in manga_list:
             for manga in self.TITLES_TO_DOWNLOAD:   
                 # Extract manga title   
                 title = manga_div.find("a").get_text()
@@ -74,19 +61,11 @@ class MangaScraper:
             chapter_number = link['href'].split('/')[-1].split('-')[-1]
             chapter_link = link['href']
             chapter_title = link.get_text().replace('\n', ' ').replace('\r', ' ').replace(',', '').replace(':', '').strip()  #TODO: Remove Manga title form the chapter name (chapter name is Manga name + Chapter N* + title)
-            chapter_title = self.replace_special_numbers(chapter_title)
+            chapter_title = utils.replace_special_numbers(chapter_title)
 
             chapter_info.append((chapter_link, chapter_title, chapter_number))
 
         return chapter_info
-    
-    def create_chapter_directory(self, manga, chapter_title):
-        chapter_dir = os.path.join(self.SAVE_FOLDER, manga, chapter_title)
-
-        if not os.path.exists(chapter_dir):
-            os.makedirs(chapter_dir)
-
-        return chapter_dir
 
     def download_chapters(self, manga_div, manga):
             chapter_list = self.get_chapter_info(manga_div)
@@ -99,7 +78,9 @@ class MangaScraper:
 
             # Save all chapter blocks with Link, Chapter number and Chapter title
             for chapter_link, chapter_title, chapter_number in chapter_list:
-                chapter_dir = self.create_chapter_directory(manga, chapter_title.replace(manga, ''))
+                chapter_dir = os.path.join(self.SAVE_FOLDER, manga, chapter_title.replace(manga, ''))
+
+                utils.create_save_folder(chapter_dir)
 
                 # Skip chapter if the folder isn't empty       # TODO: Manage case when a chapter is half written, count the img in the chpater vs img in the folder
                 if os.listdir(chapter_dir):
@@ -157,8 +138,10 @@ class MangaScraper:
 
     def save_images_as_pdf(self, images, chapter_dir, chapter_title):
         return False
+        #TODO: Copy this from the previous version of the program
 
     def start_download(self):
-        self.create_save_folder()
-        manga_divs = self.get_manga_divs()
-        self.download_manga(manga_divs)
+        print(self.SAVE_FOLDER)
+        utils.create_save_folder(self.SAVE_FOLDER)
+        manga_list = self.get_manga_list()
+        self.download_mangas(manga_list)
