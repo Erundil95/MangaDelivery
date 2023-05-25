@@ -1,8 +1,8 @@
-from bin import core
+from core.core import run
 
 def main():
     # Set up command line arguments, logging, etc.
-    core.run()
+    run()
 
 if __name__ == '__main__':
     main()

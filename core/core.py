@@ -1,9 +1,9 @@
 import os
 import json
 import sys
-from .manga_scraper import MangaScraper
-from .config_loader import ConfigLoader
-from . import utils
+from scraper.manga_scraper import MangaScraper
+from config.config_loader import ConfigLoader
+from utils import utils
 
 def run():
     # Load JSON config file = current_dir path + going up one level with '..' + config + config.json

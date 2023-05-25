@@ -6,7 +6,7 @@ import zipfile
 from bs4 import BeautifulSoup
 from io import BytesIO
 from PIL import Image
-from . import utils
+from utils import utils
 import sys
 
 class MangaScraper:
@@ -100,6 +100,7 @@ class MangaScraper:
                     save_function = switch_dict.get(self.SAVE_FORMAT, self.save_images_as_cbz)
                     save_function(images, chapter_dir, chapter_title)
 
+                    #TODO: REMOVE THIS TEST ONLY
                     sys.exit()
 
 
@@ -140,8 +141,8 @@ class MangaScraper:
         return False
         #TODO: Copy this from the previous version of the program
 
+
     def start_download(self):
-        print(self.SAVE_FOLDER)
         utils.create_save_folder(self.SAVE_FOLDER)
         manga_list = self.get_manga_list()
         self.download_mangas(manga_list)
