@@ -1,4 +1,3 @@
-import requests
 import re
 import os
 import io
@@ -8,6 +7,7 @@ from io import BytesIO
 from PIL import Image
 from utils import utils
 import sys
+from core.request_handler import RequestHandler
 
 class MangaScraper:
     def __init__(self, config):
@@ -17,17 +17,9 @@ class MangaScraper:
         self.SAVE_FOLDER = config['save_folder']
         self.SAVE_FORMAT = config['save_format']
 
-        # print("BASE_URL:", self.BASE_URL)
-        # print("MANGALIST_URL:", self.MANGALIST_URL)
-        # print("TITLES_TO_DOWNLOAD:", self.TITLES_TO_DOWNLOAD)
-        # print("SAVE_FOLDER:", self.SAVE_FOLDER)
-        # print("SAVE_FORMAT:", self.SAVE_FORMAT)
-
     def get_manga_list(self):
         # Send a GET request to the manga website main page
-        response = requests.get(self.MANGALIST_URL)
-        response.raise_for_status()
-        html_content = response.content
+        html_content = RequestHandler.send_request(self.MANGALIST_URL)
 
         # Parse HTML content 
         soup = BeautifulSoup(html_content, "html.parser")
@@ -51,9 +43,9 @@ class MangaScraper:
     def get_chapter_info(self, manga_div):
     # Get the list of div for each chapter (includes: chapter_title, chapter_number, chapter_link)  
         chapter_list_url = self.BASE_URL + manga_div.find("a")["href"]
-        chapter_list_response = requests.get(chapter_list_url)
-        chapter_list_response.raise_for_status()
-        chapter_list_soup = BeautifulSoup(chapter_list_response.content, "html.parser")
+        chapter_list_response = RequestHandler.send_request(chapter_list_url)
+
+        chapter_list_soup = BeautifulSoup(chapter_list_response, "html.parser")
 
         chapter_info = []
         for link in chapter_list_soup.find_all("a", href=re.compile(r"/chapters/\d+/.+")):
@@ -89,10 +81,9 @@ class MangaScraper:
                 else:
                     print("Downloading " + f"{chapter_dir}")
 
-                    chapter_response = requests.get(self.BASE_URL + chapter_link)
-                    chapter_response.raise_for_status()
+                    chapter_response = RequestHandler.send_request(self.BASE_URL + chapter_link)
 
-                    chapter_soup = BeautifulSoup(chapter_response.content, "html.parser")
+                    chapter_soup = BeautifulSoup(chapter_response, "html.parser")
                     image_links = chapter_soup.find_all("img", {"class": "fixed-ratio-content"})
 
                     images = self.download_images(image_links)
@@ -108,10 +99,10 @@ class MangaScraper:
         images = []
         for i, image_link in enumerate(image_links):
             image_url = image_link['src']
-            image_response = requests.get(image_url)
+            image_content = RequestHandler.send_request(image_url)
 
-            if image_response.status_code == 200:
-                with Image.open(BytesIO(image_response.content)) as img:
+            if image_content != None:
+                with Image.open(BytesIO(image_content)) as img:
                     img = img.convert('RGB')
 
                     img_byte_arr = io.BytesIO()
