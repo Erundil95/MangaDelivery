@@ -1,5 +1,6 @@
 import requests
 from  requests.exceptions import HTTPError, Timeout, ConnectionError
+from bs4 import BeautifulSoup
 
 class RequestHandler:
     @staticmethod
@@ -15,3 +16,7 @@ class RequestHandler:
             return None
         else:
             return response.content
+        
+    @staticmethod
+    def parse_html(html_content):
+        return BeautifulSoup(html_content, "html.parser")

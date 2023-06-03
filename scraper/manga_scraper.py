@@ -2,14 +2,15 @@ import re
 import os
 import io
 import zipfile
-from bs4 import BeautifulSoup
 from io import BytesIO
 from PIL import Image
 from utils import utils
 import sys
 from core.request_handler import RequestHandler
+from core.image_saver import Image_saver
+from .base_scraper import BaseScraper
 
-class MangaScraper:
+class MangaScraper(BaseScraper):
     def __init__(self, config):
         self.BASE_URL = config['base_url']
         self.MANGALIST_URL = config['mangalist_url']
@@ -22,7 +23,7 @@ class MangaScraper:
         html_content = RequestHandler.send_request(self.MANGALIST_URL)
 
         # Parse HTML content 
-        soup = BeautifulSoup(html_content, "html.parser")
+        soup = RequestHandler.parse_html(html_content)
 
         # Find all mangas available
         manga_list = soup.find_all("div", {"class": "flex flex-col"})
@@ -40,32 +41,13 @@ class MangaScraper:
                     print(manga + " found, downloading...")
                     self.download_chapters(manga_div, manga)
 
-    def get_chapter_info(self, manga_div):
-    # Get the list of div for each chapter (includes: chapter_title, chapter_number, chapter_link)  
-        chapter_list_url = self.BASE_URL + manga_div.find("a")["href"]
-        chapter_list_response = RequestHandler.send_request(chapter_list_url)
-
-        chapter_list_soup = BeautifulSoup(chapter_list_response, "html.parser")
-
-        chapter_info = []
-        for link in chapter_list_soup.find_all("a", href=re.compile(r"/chapters/\d+/.+")):
-         # Get the chapter number by splitting the link with / and then -
-            chapter_number = link['href'].split('/')[-1].split('-')[-1]
-            chapter_link = link['href']
-            chapter_title = link.get_text().replace('\n', ' ').replace('\r', ' ').replace(',', '').replace(':', '').strip()  #TODO: Remove Manga title form the chapter name (chapter name is Manga name + Chapter N* + title)
-            chapter_title = utils.replace_special_numbers(chapter_title)
-
-            chapter_info.append((chapter_link, chapter_title, chapter_number))
-
-        return chapter_info
-
     def download_chapters(self, manga_div, manga):
             chapter_list = self.get_chapter_info(manga_div)
 
             # Switch dictionary with savefile methods
             switch_dict = {
-                'cbz': self.save_images_as_cbz,
-                'pdf': self.save_images_as_pdf
+                'cbz': Image_saver.save_images_as_cbz,
+                'pdf': Image_saver.save_images_as_pdf
             }
 
             # Save all chapter blocks with Link, Chapter number and Chapter title
@@ -83,17 +65,35 @@ class MangaScraper:
 
                     chapter_response = RequestHandler.send_request(self.BASE_URL + chapter_link)
 
-                    chapter_soup = BeautifulSoup(chapter_response, "html.parser")
+                    chapter_soup = RequestHandler.parse_html(chapter_response)
                     image_links = chapter_soup.find_all("img", {"class": "fixed-ratio-content"})
 
                     images = self.download_images(image_links)
 
-                    save_function = switch_dict.get(self.SAVE_FORMAT, self.save_images_as_cbz)
+                    save_function = switch_dict.get(self.SAVE_FORMAT, Image_saver.save_images_as_cbz)
                     save_function(images, chapter_dir, chapter_title)
 
                     #TODO: REMOVE THIS TEST ONLY
                     sys.exit()
 
+    def get_chapter_info(self, manga_div):
+    # Get the list of div for each chapter (includes: chapter_title, chapter_number, chapter_link)  
+        chapter_list_url = self.BASE_URL + manga_div.find("a")["href"]
+        chapter_list_response = RequestHandler.send_request(chapter_list_url)
+
+        chapter_list_soup = RequestHandler.parse_html(chapter_list_response)
+
+        chapter_info = []
+        for link in chapter_list_soup.find_all("a", href=re.compile(r"/chapters/\d+/.+")):
+         # Get the chapter number by splitting the link with / and then -
+            chapter_number = link['href'].split('/')[-1].split('-')[-1]
+            chapter_link = link['href']
+            chapter_title = link.get_text().replace('\n', ' ').replace('\r', ' ').replace(',', '').replace(':', '').strip()  #TODO: Remove Manga title form the chapter name (chapter name is Manga name + Chapter N* + title)
+            chapter_title = utils.replace_special_numbers(chapter_title)
+
+            chapter_info.append((chapter_link, chapter_title, chapter_number))
+
+        return chapter_info
 
     def download_images(self, image_links):
         images = []
@@ -114,24 +114,6 @@ class MangaScraper:
                 print('Failed to download image')
 
         return images
-    
-    def save_images_as_cbz(self, images, chapter_dir, chapter_title):
-        zip_buffer = BytesIO()
-
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            for file_name, img_bytes in images:
-                zip_file.writestr(file_name, img_bytes)
-
-        zip_file_name = f"{chapter_title}.cbz"
-        zip_buffer.seek(0)
-
-        with open(os.path.join(chapter_dir, zip_file_name), "wb") as zip_file:
-            zip_file.write(zip_buffer.read())
-
-    def save_images_as_pdf(self, images, chapter_dir, chapter_title):
-        return False
-        #TODO: Copy this from the previous version of the program
-
 
     def start_download(self):
         utils.create_save_folder(self.SAVE_FOLDER)
