@@ -1,8 +1,11 @@
 from abc import ABC, abstractclassmethod
 
 class BaseScraper(ABC):
-    def __init__(self, url):
-        self.url = url
+
+    @property
+    @abstractclassmethod
+    def get_base_url(self):
+        pass
     
     @abstractclassmethod
     def start_download(self):

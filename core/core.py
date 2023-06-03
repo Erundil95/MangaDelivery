@@ -1,7 +1,7 @@
 import os
 import json
 import sys
-from scraper.manga_scraper import MangaScraper
+from scraper.onepiecechapters_scraper import OnePieceChaptersScraper
 from config.config_loader import ConfigLoader
 from utils import utils
 
@@ -18,5 +18,5 @@ def run():
         sys.exit()
 
     # Config = Dictionary <key_setting> : string/list <value>d
-    manga_scraper = MangaScraper(config)
+    manga_scraper = OnePieceChaptersScraper(config)
     manga_scraper.start_download()

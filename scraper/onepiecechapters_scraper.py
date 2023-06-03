@@ -10,10 +10,12 @@ from core.request_handler import RequestHandler
 from core.image_saver import Image_saver
 from .base_scraper import BaseScraper
 
-class MangaScraper(BaseScraper):
+class OnePieceChaptersScraper(BaseScraper):
+
+    BASE_URL = 'https://onepiecechapters.com'
+    MANGALIST_URL = BASE_URL + '/projects'
+
     def __init__(self, config):
-        self.BASE_URL = config['base_url']
-        self.MANGALIST_URL = config['mangalist_url']
         self.TITLES_TO_DOWNLOAD = config['titles_to_download']
         self.SAVE_FOLDER = config['save_folder']
         self.SAVE_FORMAT = config['save_format']
@@ -119,3 +121,6 @@ class MangaScraper(BaseScraper):
         utils.create_save_folder(self.SAVE_FOLDER)
         manga_list = self.get_manga_list()
         self.download_mangas(manga_list)
+
+    def get_base_url(self):
+        return self.BASE_URL
