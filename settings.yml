@@ -1,0 +1,9 @@
+client_config_file: C:/Users/crist/iCloudDrive/Projects/MangaDelivery/client_secret.json
+save_credentials: true
+save_credentials_backend: file
+save_credentials_file: mycreds.txt
+get_refresh_token: true
+oauth_scope:
+  - https://www.googleapis.com/auth/drive
+  - https://www.googleapis.com/auth/drive.file
+  - https://www.googleapis.com/auth/drive.install

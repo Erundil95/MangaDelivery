@@ -1,7 +1,6 @@
 import re
 import os
 import io
-import zipfile
 from io import BytesIO
 from PIL import Image
 from utils import utils
@@ -9,6 +8,8 @@ import sys
 from core.request_handler import RequestHandler
 from core.image_saver import Image_saver
 from .base_scraper import BaseScraper
+
+from cloudsave import gdrive_cloud
 
 class OnePieceChaptersScraper(BaseScraper):
 
@@ -58,9 +59,9 @@ class OnePieceChaptersScraper(BaseScraper):
 
                 utils.create_save_folder(chapter_dir)
 
-                # Skip chapter if the folder isn't empty       # TODO: Manage case when a chapter is half written, count the img in the chpater vs img in the folder
+                # Skip chapter if the folder isn't empty
                 if os.listdir(chapter_dir):
-                    print(f"{chapter_dir}" + "already exists and is not empty, skipping... ")  
+                    print(f"{chapter_title}" + " already exists and is not empty, skipping... ")  
 
                 else:
                     print("Downloading " + f"{chapter_dir}")
@@ -74,6 +75,12 @@ class OnePieceChaptersScraper(BaseScraper):
 
                     save_function = switch_dict.get(self.SAVE_FORMAT, Image_saver.save_images_as_cbz)
                     save_function(images, chapter_dir, chapter_title)
+
+
+                    #TODO: REMOVE THIS TESTING ONLY
+                    gdrive = gdrive_cloud.GdriveCloud()
+
+                    gdrive.upload_file(chapter_dir + '\\' + chapter_title + '.cbz')
 
                     #TODO: REMOVE THIS TEST ONLY
                     sys.exit()

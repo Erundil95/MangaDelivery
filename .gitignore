@@ -31,3 +31,5 @@ __pycache__
 
 # Singular files
 test.html
+client_secret.json
+mycreds.txt
