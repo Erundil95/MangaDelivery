@@ -20,6 +20,7 @@ class OnePieceChaptersScraper(BaseScraper):
         self.TITLES_TO_DOWNLOAD = config['titles_to_download']
         self.SAVE_FOLDER = config['save_folder']
         self.SAVE_FORMAT = config['save_format']
+        self.CLOUD_SERVICE = config['cloud_service']
 
     def get_manga_list(self):
         # Send a GET request to the manga website main page
@@ -47,6 +48,9 @@ class OnePieceChaptersScraper(BaseScraper):
     def download_chapters(self, manga_div, manga):
             chapter_list = self.get_chapter_info(manga_div)
 
+            manga_dir = os.path.join(self.SAVE_FOLDER, manga)
+            utils.create_save_folder(manga_dir)
+
             # Switch dictionary with savefile methods
             switch_dict = {
                 'cbz': Image_saver.save_images_as_cbz,
@@ -55,16 +59,15 @@ class OnePieceChaptersScraper(BaseScraper):
 
             # Save all chapter blocks with Link, Chapter number and Chapter title
             for chapter_link, chapter_title, chapter_number in chapter_list:
-                chapter_dir = os.path.join(self.SAVE_FOLDER, manga, chapter_title.replace(manga, ''))
-
-                utils.create_save_folder(chapter_dir)
+                chapter_title = chapter_title.replace(manga + ' ', '')
 
                 # Skip chapter if the folder isn't empty
-                if os.listdir(chapter_dir):
-                    print(f"{chapter_title}" + " already exists and is not empty, skipping... ")  
+                file_exists = any(os.path.splitext(f)[0] == chapter_title for f in os.listdir(os.path.join(self.SAVE_FOLDER, manga)))
+                if  file_exists:
+                    print(f"{chapter_title}" + " already exists, skipping... ")  
 
                 else:
-                    print("Downloading " + f"{chapter_dir}")
+                    print("Downloading " + f"{chapter_title}")
 
                     chapter_response = RequestHandler.send_request(self.BASE_URL + chapter_link)
 
@@ -73,14 +76,8 @@ class OnePieceChaptersScraper(BaseScraper):
 
                     images = self.download_images(image_links)
 
-                    save_function = switch_dict.get(self.SAVE_FORMAT, Image_saver.save_images_as_cbz)
-                    save_function(images, chapter_dir, chapter_title)
-
-
-                    #TODO: REMOVE THIS TESTING ONLY
-                    gdrive = gdrive_cloud.GdriveCloud()
-
-                    gdrive.upload_file(chapter_dir + '\\' + chapter_title + '.cbz')
+                    save_function = switch_dict.get(self.SAVE_FORMAT)
+                    save_function(images, manga_dir, chapter_title, self.CLOUD_SERVICE)
 
                     #TODO: REMOVE THIS TEST ONLY
                     sys.exit()
@@ -97,7 +94,7 @@ class OnePieceChaptersScraper(BaseScraper):
          # Get the chapter number by splitting the link with / and then -
             chapter_number = link['href'].split('/')[-1].split('-')[-1]
             chapter_link = link['href']
-            chapter_title = link.get_text().replace('\n', ' ').replace('\r', ' ').replace(',', '').replace(':', '').strip()  #TODO: Remove Manga title form the chapter name (chapter name is Manga name + Chapter N* + title)
+            chapter_title = link.get_text().replace('\n', ' ').replace('\r', '').replace(',', '').replace(':', '').strip()  #TODO: Remove Manga title form the chapter name (chapter name is Manga name + Chapter N* + title)
             chapter_title = utils.replace_special_numbers(chapter_title)
 
             chapter_info.append((chapter_link, chapter_title, chapter_number))

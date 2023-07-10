@@ -1,5 +1,4 @@
 import os
-import json
 import sys
 from scraper.onepiecechapters_scraper import OnePieceChaptersScraper
 from config.config_loader import ConfigLoader

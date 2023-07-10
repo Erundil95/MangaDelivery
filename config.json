@@ -3,5 +3,6 @@
   "base_url": "https://onepiecechapters.com",
   "mangalist_url": "https://onepiecechapters.com/projects",
   "titles_to_download": ["Jujutsu Kaisen"],
-  "save_format": "cbz"
+  "save_format": "cbz",
+  "cloud_service": "gdrive"
 }
