@@ -16,8 +16,9 @@ class GdriveCloud(BaseCloud):
                 gauth.Refresh()
             except Exception as e:
                 #TODO: make this automatic, delete txt and relaunch program
-                print("Your access token has expired and we couldn't refresh it.")
-                print("Delete mycreds.txt to refresh.")
+                print("@@ WARNING: Your access token has expired and we couldn't refresh it.")
+                print("@@ Deleting mycreds.txt")
+                print("@@ Restart program to be re-prompted to login into Google")
 
                 print(f"Error: {e}")
                 gauth.LocalWebserverAuth()
@@ -28,11 +29,16 @@ class GdriveCloud(BaseCloud):
 
         self.drive = GoogleDrive(gauth)
 
-    def upload_file(self, local_file_path, folder_id):
+    def upload_file(self, local_file_path, remote_folder_info):
         filename = os.path.basename(local_file_path)
-        file_id = self.get_file_id(filename)
+        file_info = self.get_file_info(filename)
+        folder_id = remote_folder_info['id']
+
+        file_id = file_info['id'] if file_info is not None else None
 
         if file_id:
+            print("File already exists on Google Drive...")
+        else:
             try:
                 title = os.path.basename(local_file_path)
 
@@ -46,11 +52,12 @@ class GdriveCloud(BaseCloud):
                 print("@@ UPLOADING FILE TO GDRIVE: " + local_file_path)
                 f.Upload()
 
-                return "File uploaded successfully."
+                print("File uploaded successfully.")
+                return f
             except Exception as e:
                 print(e)
                 raise Exception(f"Failed to upload {title} to Google Drive")
-        
+       
     def create_folder(self, title, parent_id = None):
         folder_metadata = {
             'title' : title,
@@ -66,9 +73,9 @@ class GdriveCloud(BaseCloud):
 
         # Get folder info and print to console
         print(f"@@ Folder {title} created")
-        return folder['id']
+        return folder
     
-    def get_folder_id(self, title, parent_id = None):
+    def get_folder_info(self, title, parent_id = None):
         query = f"title='{title}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
 
         if parent_id:
@@ -77,11 +84,11 @@ class GdriveCloud(BaseCloud):
         file_list = self.drive.ListFile({'q': query}).GetList()
 
         if file_list:
-            return file_list[0]['id']
+            return file_list[0]
         else:
             return None
         
-    def get_file_id(self, title, parent_id = None):
+    def get_file_info(self, title, parent_id = None):
         query = f"title='{title}' and trashed=false"
 
         if parent_id:
@@ -90,15 +97,15 @@ class GdriveCloud(BaseCloud):
         file_list = self.drive.ListFile({'q': query}).GetList()
 
         if file_list:
-            return file_list[0]['id']
+            return file_list[0]
         else:
             return None
         
     def get_or_create_folder(self, title, parent_id = None):
-        folder_id = self.get_folder_id(title, parent_id)
+        folder_info = self.get_folder_info(title, parent_id)
 
-        if folder_id is None:
+        if folder_info is None:
             print(f"@@ Folder not found, creating folder named {title}")
-            folder_id = self.create_folder(title, parent_id)
+            folder_info = self.create_folder(title, parent_id)
 
-        return folder_id
+        return folder_info

@@ -73,12 +73,13 @@ class Image_saver:
         manga_title = os.path.basename(directory)
 
         try:
-            main_folder_id = gdrive.get_or_create_folder("MangaDelivery")
+            main_folder_info = gdrive.get_or_create_folder("MangaDelivery")
+            main_folder_id = main_folder_info['id']
 
-            folder_id = gdrive.get_or_create_folder(manga_title, main_folder_id)
+            folder_info = gdrive.get_or_create_folder(manga_title, main_folder_id)
 
-            result = gdrive.upload_file(savefile_name, folder_id)
-            print(result)
+            gdrive.upload_file(savefile_name, folder_info)
+            
         except Exception as e:
             print(e)
 
