@@ -8,19 +8,21 @@ import sys
 from core.request_handler import RequestHandler
 from core.image_saver import Image_saver
 from .base_scraper import BaseScraper
+from config.config_loader import ConfigLoader
 
-from cloudsave import gdrive_cloud
+# load at module import
+config = ConfigLoader()
 
 class OnePieceChaptersScraper(BaseScraper):
 
     BASE_URL = 'https://onepiecechapters.com'
     MANGALIST_URL = BASE_URL + '/projects'
 
-    def __init__(self, config):
-        self.TITLES_TO_DOWNLOAD = config['titles_to_download']
-        self.SAVE_FOLDER = config['save_folder']
-        self.SAVE_FORMAT = config['save_format']
-        self.CLOUD_SERVICE = config['cloud_service']
+    def __init__(self):
+        self.TITLES_TO_DOWNLOAD = config.get_setting('titles_to_download')
+        self.SAVE_FOLDER = config.get_setting('save_folder')
+        self.SAVE_FORMAT = config.get_setting('save_format')
+        self.CLOUD_SERVICE = config.get_setting('cloud_service')
 
     def get_manga_list(self):
         # Send a GET request to the manga website main page
@@ -36,11 +38,11 @@ class OnePieceChaptersScraper(BaseScraper):
     def download_mangas(self, manga_list):
     # Loop over each manga on the website to match the desired ones
         for manga_div in manga_list:
-            for manga in self.TITLES_TO_DOWNLOAD:   
-                # Extract manga title   
+            for manga in self.TITLES_TO_DOWNLOAD:
+                # Extract manga title
                 title = manga_div.find("a").get_text()
 
-                if(title == manga):                                                 
+                if(title == manga):
                 #TODO: look to make the search more smart for japanese names variants
                     print(manga + " found, downloading...")
                     self.download_chapters(manga_div, manga)

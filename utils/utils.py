@@ -10,13 +10,9 @@ def replace_special_numbers(string):
                 '⑯': '16', '⑰': '17', '⑱': '18', '⑲': '19', '⑳': '20'}
     return re.sub(pattern, lambda match: char_map[match.group()], string)
 
-
-#TODO: Might wanna change this one, don't think it's very well done, figure out a better way to load settings maybe?
 def create_default_config(config_file_path):
     default_config = {
         "save_folder": "MangaDeliveryTest",
-        "base_url": "https://onepiecechapters.com",
-        "mangalist_url": "https://onepiecechapters.com/projects",
         "titles_to_download": [],
         "save_format": "cbz"
     }
