@@ -26,7 +26,6 @@ class OnePieceChaptersScraper(BaseScraper):
     def get_manga_list(self):
         # Send a GET request to the manga website main page
         html_content = RequestHandler.send_request(self.MANGALIST_URL)
-        print(self.TITLES_TO_DOWNLOAD)
 
         # Parse HTML content 
         soup = RequestHandler.parse_html(html_content)

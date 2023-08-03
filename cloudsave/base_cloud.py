@@ -61,6 +61,8 @@ class BaseCloud(ABC):
         except Exception as e:
             print(e)
             raise Exception(f"Failed to retrieve file list from cloud")
+        
+        print(f'Syncronizing files with cloud storage for {manga_name}...')
 
         for file in local_file_set - remote_file_set:
             print(f'Sync Uploading file: {file}')
@@ -70,3 +72,5 @@ class BaseCloud(ABC):
         for file in remote_file_set - local_file_set:
             print(f'Sync Deleting remote file: {file}')
             self.delete_file(file, manga_name)
+
+        print(f'Syncronization completed!')
