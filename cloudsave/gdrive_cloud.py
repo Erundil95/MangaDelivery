@@ -2,12 +2,14 @@ from .base_cloud import BaseCloud
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import os
+from config.config_loader import ConfigLoader
 
-
-
+# TODO REMOVE for testing purposes
 import sys
 
-
+# load at module import
+config = ConfigLoader()
+MAIN_FOLDER = 'MangaDelivery'
 class GdriveCloud(BaseCloud):
 
     def __init__(self):
@@ -35,11 +37,9 @@ class GdriveCloud(BaseCloud):
 
         self.drive = GoogleDrive(gauth)
 
-    def save_on_cloud(self, savefile_name):
+    def save_on_cloud(self, savefile_name):                 #TODO: might wanna look at this, put everything into upload_file? 
         directory = os.path.dirname(savefile_name)
         manga_title = os.path.basename(directory)
-
-        self.synch_files_with_local(directory, manga_title)
 
         try:
             main_folder_info = self.get_or_create_folder("MangaDelivery")
@@ -124,6 +124,16 @@ class GdriveCloud(BaseCloud):
             return file_list[0]
         else:
             return None
+        
+    def get_folder_contents(self, folder=MAIN_FOLDER):            #by default returns files in main foler
+        query = f"'{self.get_folder_info(folder)['id']}' in parents and trashed=false"
+
+        file_list = self.drive.ListFile({'q': query}).GetList()
+
+        if file_list:
+            return file_list
+        else:
+            return None        
 
     def get_or_create_folder(self, title, parent_id=None):
         folder_info = self.get_folder_info(title, parent_id)
@@ -134,22 +144,12 @@ class GdriveCloud(BaseCloud):
 
         return folder_info
 
-    def delete_file(self, remote_file_info):
-        file_id = remote_file_info['id']
+    def delete_file(self, remote_file_name, parent_name):
+        file_id = self.get_file_info(
+            remote_file_name, self.get_folder_info(parent_name)['id'])['id']    #TODO: yeah this looks like shit ik
 
         try:
             file = self.drive.CreateFile({'id': file_id})
             file.Delete()
         except Exception as e:
             print('Error occured while deleting file %s' % e)
-
-    def synch_files_with_local(self, local_foler_path, remote_folder_name):
-        local_file_list = []
-
-        for f in os.listdir(local_foler_path):
-            if os.path.isfile(os.path.join(local_foler_path, f)):
-                local_file_list.append(f)
-
-        
-
-        # sys.exit()

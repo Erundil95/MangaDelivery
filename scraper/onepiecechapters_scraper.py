@@ -4,7 +4,6 @@ import io
 from io import BytesIO
 from PIL import Image
 from utils import utils
-import sys
 from core.request_handler import RequestHandler
 from core.image_saver import Image_saver
 from .base_scraper import BaseScraper
@@ -27,6 +26,7 @@ class OnePieceChaptersScraper(BaseScraper):
     def get_manga_list(self):
         # Send a GET request to the manga website main page
         html_content = RequestHandler.send_request(self.MANGALIST_URL)
+        print(self.TITLES_TO_DOWNLOAD)
 
         # Parse HTML content 
         soup = RequestHandler.parse_html(html_content)
@@ -38,18 +38,17 @@ class OnePieceChaptersScraper(BaseScraper):
     def download_mangas(self, manga_list):
     # Loop over each manga on the website to match the desired ones
         for manga_div in manga_list:
-            for manga in self.TITLES_TO_DOWNLOAD:
+            for manga in self.TITLES_TO_DOWNLOAD.keys():
                 # Extract manga title
                 title = manga_div.find("a").get_text()
 
                 if(title == manga):
                 #TODO: look to make the search more smart for japanese names variants
                     print(manga + " found, downloading...")
-                    self.download_chapters(manga_div, manga)
+                    self.check_max_chapters(manga_div, manga)
 
-    def download_chapters(self, manga_div, manga):
-            chapter_list = self.get_chapter_info(manga_div)
-
+    def download_chapters(self, manga_div, manga, max_chapters):
+            chapter_list = self.get_chapter_info(manga_div)    #TODO: might want to only retrieve max num of chapters everytime
             manga_dir = os.path.join(self.SAVE_FOLDER, manga)
             utils.create_save_folder(manga_dir)
 
@@ -59,6 +58,7 @@ class OnePieceChaptersScraper(BaseScraper):
                 'pdf': Image_saver.save_images_as_pdf
             }
 
+            chapters_downloaded = 0
             # Save all chapter blocks with Link, Chapter number and Chapter title
             for chapter_link, chapter_title, chapter_number in chapter_list:
                 chapter_title = chapter_title.replace(manga + ' ', '')
@@ -66,7 +66,8 @@ class OnePieceChaptersScraper(BaseScraper):
                 # Skip chapter if the folder isn't empty
                 file_exists = any(os.path.splitext(f)[0] == chapter_title for f in os.listdir(os.path.join(self.SAVE_FOLDER, manga)))
                 if  file_exists:
-                    print(f"{chapter_title}" + " already exists, skipping... ")  
+                    print(f"{chapter_title}" + " already exists in local, skipping... ")
+
 
                 else:
                     print("Downloading " + f"{chapter_title}")
@@ -79,10 +80,12 @@ class OnePieceChaptersScraper(BaseScraper):
                     images = self.download_images(image_links)
 
                     save_function = switch_dict.get(self.SAVE_FORMAT)
-                    save_function(images, manga_dir, chapter_title, self.CLOUD_SERVICE)
+                    save_function(images, manga_dir, chapter_title)
 
-                    #TODO: REMOVE THIS TEST ONLY
-                    sys.exit()
+                chapters_downloaded += 1
+                if chapters_downloaded >= max_chapters:
+                    break
+
 
     def get_chapter_info(self, manga_div):
     # Get the list of div for each chapter (includes: chapter_title, chapter_number, chapter_link)  

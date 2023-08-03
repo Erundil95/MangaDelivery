@@ -1,14 +1,20 @@
 import os
 import zipfile
 import cloudsave
+import time
 from io import BytesIO
-from  requests.exceptions import HTTPError, Timeout, ConnectionError
+from requests.exceptions import HTTPError, Timeout, ConnectionError
+from config.config_loader import ConfigLoader
+
 
 class Image_saver:
 
     @staticmethod
-    def save_images_as_cbz(images, chapter_dir, chapter_title, cloud_service=None):
+    def save_images_as_cbz(images, chapter_dir, chapter_title):
+        config = ConfigLoader()
+        cloud_service = config.get_setting('cloud_service')
         zip_buffer = BytesIO()
+
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             for file_name, img_bytes in images:
                 zip_file.writestr(file_name, img_bytes)
@@ -37,6 +43,7 @@ class Image_saver:
     @staticmethod
     def save_on_cloud(savefile_name, cloud_service):
         max_retry_attempts = 5
+        delay = 3                                                   #delay in seconds
 
         if(cloud_service == None):
             print(f"Cloud saving is disabled, saving only on local")
@@ -51,6 +58,7 @@ class Image_saver:
                     return True
                 except Exception as e:
                     print(f"Error while uploading {savefile_name}: {e}")
+                    time.sleep(delay)        
             
             #Reached max attempts
             print(f"Failed to upload {savefile_name} after {max_retry_attempts} attempts")

@@ -18,5 +18,12 @@ class ConfigLoader(metaclass = Singleton):
         with open(self.config_file, 'r') as f:
             return json.load(f)
         
-    def get_setting(self, key):
+    def get_setting(self, key):   #consider getting individual getters for each field
         return self.config[key]
+    
+    def set_chapters_to_download_default(self, title):     #might wanna rethink this
+        self.config["titles_to_download"][title] = self.config["sync_max_chapters"]
+        with open(self.config_file, 'w') as f:
+            json.dump(self.config, f, indent=4)
+
+    
