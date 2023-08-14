@@ -4,12 +4,10 @@ from pydrive.drive import GoogleDrive
 import os
 from config.config_loader import ConfigLoader
 
-# TODO REMOVE for testing purposes
-import sys
-
 # load at module import
 config = ConfigLoader()
 MAIN_FOLDER = 'MangaDelivery'
+
 class GdriveCloud(BaseCloud):
 
     def __init__(self):

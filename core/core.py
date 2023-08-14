@@ -2,8 +2,6 @@ from scraper.onepiecechapters_scraper import OnePieceChaptersScraper
 from config.config_loader import ConfigLoader
 import cloudsave
 
-import sys
-
 def run():
     config = ConfigLoader()
     cloud_service = config.get_setting('cloud_service')
