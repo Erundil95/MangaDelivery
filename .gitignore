@@ -1,0 +1,36 @@
+# .gitignore
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environments
+venv/
+.env/
+
+# Ignore downloaded manga files
+MangaDelivery/
+
+# Ignore IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.log
+*.bak
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# General direcotries
+__pycache__
+
+# Singular files
+test.html
+client_secret.json
+mycreds.txt
+settings.yml
