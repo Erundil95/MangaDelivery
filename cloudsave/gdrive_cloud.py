@@ -10,30 +10,33 @@ MAIN_FOLDER = 'MangaDelivery'
 
 class GdriveCloud(BaseCloud):
 
-    def __init__(self):
+    def __init__(self, drive):
+        self.drive = drive
+
+    @classmethod
+    def create_with_authentication(cls):
         gauth = GoogleAuth(settings_file='settings.yml')
 
-        gauth.LoadCredentialsFile("mycreds.txt")
+        if os.path.exists("mycreds.txt"):
+            gauth.LoadCredentialsFile("mycreds.txt")
+
         if (gauth.credentials is None):
             gauth.LocalWebserverAuth()
         elif (gauth.access_token_expired):
             try:
                 gauth.Refresh()
             except Exception as e:
-                # TODO: make this automatic, delete txt and relaunch program
-                print(
-                    "@@ WARNING: Your access token has expired and we couldn't refresh it.")
+                print("@@ WARNING: Your access token has expired and we couldn't refresh it.")
                 print("@@ Deleting mycreds.txt")
-                print("@@ Restart program to be re-prompted to login into Google")
-
-                print(f"Error: {e}")
+                os.remove("mycreds.txt")
                 gauth.LocalWebserverAuth()
-        else:
-            gauth.Authorize()
+        
+        gauth.Authorize()
 
         gauth.SaveCredentialsFile("mycreds.txt")
 
-        self.drive = GoogleDrive(gauth)
+        drive = GoogleDrive(gauth)
+        return cls(drive)
 
     def save_on_cloud(self, savefile_name):                 #TODO: might wanna look at this, put everything into upload_file? 
         directory = os.path.dirname(savefile_name)
