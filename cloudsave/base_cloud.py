@@ -3,8 +3,6 @@ from config.config_loader import ConfigLoader
 import cloudsave
 import os
 
-import sys
-
 
 class BaseCloud(ABC):
 
@@ -31,7 +29,7 @@ class BaseCloud(ABC):
     @staticmethod
     def get_cloud_service(cloud_service_type):
         cloud_classes = {
-            "gdrive": cloudsave.gdrive_cloud.GdriveCloud,
+            "gdrive": cloudsave.gdrive_cloud.GdriveCloud.create_with_authentication,
             # "icloud": cloudsave.icloud_cloud.IcloudCloud,       # not implemented yet
             # "dropbox": cloudsave.dropbox_cloud.DropboxCloud,    # not implemented yet
             # "onedrive": cloudsave.onedrive_cloud.OnedriveCloud  # not implemented yet
