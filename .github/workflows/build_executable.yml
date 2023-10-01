@@ -35,4 +35,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.os }}-py${{ matrix.python-version }}
-          path: dist/main
+          path: dist/main*
