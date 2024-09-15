@@ -6,13 +6,15 @@ from io import BytesIO
 from requests.exceptions import HTTPError, Timeout, ConnectionError
 from config.config_loader import ConfigLoader
 
+def trim(s):
+    return s.strip() if s else s
 
 class Image_saver:
 
     @staticmethod
     def save_images_as_cbz(images, chapter_dir, chapter_title):
         config = ConfigLoader()
-        cloud_service = config.get_setting('cloud_service')
+        cloud_service = trim(config.get_setting('cloud_service'))
         zip_buffer = BytesIO()
 
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:

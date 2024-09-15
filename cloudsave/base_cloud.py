@@ -48,9 +48,13 @@ class BaseCloud(ABC):
         max_files_on_cloud = config_loader.get_setting(
             'titles_to_download')[manga_name]
 
-        local_file_list = sorted(os.listdir(local_folder_path), reverse=True)[
-            :max_files_on_cloud]
-        local_file_set = set(local_file_list)
+        try:
+            local_file_list = sorted(os.listdir(local_folder_path), reverse=True)[
+                :max_files_on_cloud]
+            local_file_set = set(local_file_list)
+        except FileNotFoundError as e:
+            print(f"Manga not found: {manga_name}")
+            return
 
         try:
             remote_file_list = sorted(

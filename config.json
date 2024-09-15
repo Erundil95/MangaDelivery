@@ -1,7 +1,6 @@
 {
     "save_folder": "MangaDelivery",
     "titles_to_download": {
-        "Jujutsu Kaisen": 5,
         "Chainsaw Man": 5
     },
     "save_format": "cbz",

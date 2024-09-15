@@ -19,4 +19,6 @@ class RequestHandler:
         
     @staticmethod
     def parse_html(html_content):
+        if html_content is None:
+            raise ValueError("HTML content is None. Request likely failed.")
         return BeautifulSoup(html_content, "html.parser")

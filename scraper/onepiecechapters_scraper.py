@@ -14,7 +14,7 @@ config = ConfigLoader()
 
 class OnePieceChaptersScraper(BaseScraper):
 
-    BASE_URL = 'https://onepiecechapters.com'
+    BASE_URL = 'https://tcbscans.me'
     MANGALIST_URL = BASE_URL + '/projects'
 
     def __init__(self):
